@@ -1,5 +1,6 @@
 require("dotenv").config();
 const Discord = require('discord.js');
+var creds = require('./config');//config.js contains my bot keys
 const util = require('minecraft-server-util');
 const ytdl = require('ytdl-core');
 const yts = require('yt-search')
@@ -49,6 +50,7 @@ function readyDiscord() {
 }
 
 client.on('message', async message => {
+    
     let args = message.content.substring(PREFIX.length).split(' ');
 
     switch (args[0]) {
@@ -115,7 +117,18 @@ client.on('message', async message => {
                 inChannel = false;
             }
             break;
+
+        case 'game':
+            if (message.member.presence.activities.length > 0) {
+                console.log(message.member.presence.activities.length);
+                console.log(message.member.presence.activities[0].name);
+                message.channel.send(message.member.user.username + " Is Playing: " + message.member.presence.activities[0].name)
+            } else {
+                console.log("Null");
+                message.channel.send(message.member.user.username + " Is Not Currently Playing A Game :/")
+            }
     }
+
 
     //bot.commands.get('defineRole').execute(message);//Make sure Doctors Assistant role exists
 })
@@ -140,3 +153,4 @@ function cacheToText() {//Write the current cache to the json file
         }
     });
 }
+
