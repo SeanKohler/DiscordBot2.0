@@ -1,0 +1,10 @@
+//CHANGE LOG
+
+-12/12/2020 Discord Bot 2.0 Was Created
+--Basic functionality carried over (!play, !stop)
+--New functionality (!server, !game)
+--Version 1.0.1
+
+-12/16/2020 Added Automatic Role Creation and Assignment 
+--These are functions the user cannot access but are automatically applied 
+--Version 1.0.2

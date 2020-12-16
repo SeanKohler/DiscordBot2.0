@@ -1,3 +1,8 @@
+/*
+--Version 1.0.2
+--Created By Sean Kohler
+--Date Last Modified 12/16/2020
+*/
 require("dotenv").config();
 const Discord = require('discord.js');
 var creds = require('./config');//config.js contains my bot keys
@@ -38,7 +43,7 @@ const colors = [
     0xffd700,
     0x25FA34,
     0x00ffff,
-    0xff0000,
+    //0xff0000,
     0x00d0f0
 ]
 
@@ -50,7 +55,10 @@ function readyDiscord() {
 }
 
 client.on('message', async message => {
-    
+    //------------------
+    assnRole(message);
+    //------------------
+
     let args = message.content.substring(PREFIX.length).split(' ');
 
     switch (args[0]) {
@@ -120,17 +128,11 @@ client.on('message', async message => {
 
         case 'game':
             if (message.member.presence.activities.length > 0) {
-                console.log(message.member.presence.activities.length);
-                console.log(message.member.presence.activities[0].name);
                 message.channel.send(message.member.user.username + " Is Playing: " + message.member.presence.activities[0].name)
             } else {
-                console.log("Null");
                 message.channel.send(message.member.user.username + " Is Not Currently Playing A Game :/")
             }
     }
-
-
-    //bot.commands.get('defineRole').execute(message);//Make sure Doctors Assistant role exists
 })
 function grabCache() {//Populate the cache from json file on program startup
     fs.readFile('cache.json', 'utf8', function (err, data) {
@@ -152,5 +154,28 @@ function cacheToText() {//Write the current cache to the json file
             console.log(err);
         }
     });
+}
+
+function assnRole(message){
+    if (message.member.presence.activities.length > 0) {
+        //console.log(message.member.presence.activities.length);
+        console.log(message.member.presence.activities[0].name);
+        var str = message.member.presence.activities[0].name;
+        str = str.trim();
+        //console.log(str.substring(0,9));
+        if(str.substring(0,9)=='Minecraft'){
+            console.log("MC");
+            str = 'Minecraft';
+            bot.commands.get('createRole').execute(message, str);//Go and create the role
+            bot.commands.get('giveRole').execute(message, 'Minecraft');
+        }else{
+            bot.commands.get('createRole').execute(message, str);//Go and create the role
+            bot.commands.get('giveRole').execute(message, str);
+        }
+        //message.channel.send(message.member.user.username + " Is Playing: " + message.member.presence.activities[0].name)
+    } else {
+        //console.log("Null");
+        //message.channel.send(message.member.user.username + " Is Not Currently Playing A Game :/")
+    }
 }
 
