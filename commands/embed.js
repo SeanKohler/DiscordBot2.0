@@ -2,7 +2,8 @@ module.exports = {
     name: 'embed',
     description: 'This command creates an embed about the user that typed the command',
     execute(message, util, colors, colorcounter, fs, Discord){
-        util.status('67.248.183.236') // port is default 25565 //67.248.183.236:25565
+        var creds = require('../config');
+        util.status(creds.IPADDR) // port is default 25565 //67.248.183.236:25565
                 .then((response) => {
                     //let r = Math.floor(Math.random() * colors.length);
                     let msg = response.favicon;

@@ -1,7 +1,8 @@
 /*
---Version 1.0.2
+--Dr Music Discord Bot
+--Version 1.0.3
 --Created By Sean Kohler
---Date Last Modified 12/16/2020
+--Date Last Modified 12/21/2020
 */
 require("dotenv").config();
 const Discord = require('discord.js');
@@ -26,12 +27,21 @@ var cache = {
     url: [],
     seconds: []
 }
-grabCache();
-
+var points = {
+    name: [],
+    num: []
+}
+//<Dr. Music>
+grabCache('cache.json', cache);
+grabCache('points.json', points);
+console.log("Loaded the Following Functions: ");
+console.log("---------------------");
 for (const file of commandFiles) {//for (files that end in .js)
     const command = require(`./commands/${file}`);//Require any file that is in the commands folder
     bot.commands.set(command.name, command);
+    console.log(command.name);
 }
+console.log("---------------------");
 
 const replies = [
     'Im preparing for musical surgery',
@@ -51,11 +61,12 @@ const colors = [
 client.on('ready', readyDiscord);
 
 function readyDiscord() {
-    console.log('Im Alive');
+    console.log('<Dr. Music> Im Alive!');
 }
 
 client.on('message', async message => {
     //------------------
+    addPoints(message, .25);
     assnRole(message);
     //------------------
 
@@ -73,11 +84,11 @@ client.on('message', async message => {
 
         case 'play':
             if (!message.guild) return;
-            if (!args[1]) message.reply('You Need to Specify the name you want to play!');
-            var str = '';
-            for (var i = 1; i < args.length; i++) {
-                str += args[i] + " ";
+            if (!args[1]) {
+                message.reply('You Need to Specify the name you want to play!');
+                return;
             }
+            var str = concatARGS(args);
             // Only try to join the sender's voice channel if they are in one themselves
             if (message.member.voice.channel) {
                 const connection = await message.member.voice.channel.join();
@@ -92,6 +103,7 @@ client.on('message', async message => {
                 if (alreadycalled == true) {
                     alreadycalled = false;
                     let calledurl = cache.url[cacheIndex];
+                    addPoints(message, 5);// 5 Points for playing a song that has been played before
                     connection.play(ytdl(calledurl, { filter: 'audioonly' }));
                 } else {
                     yts(str, function (err, r) {
@@ -101,8 +113,9 @@ client.on('message', async message => {
                         cache.seconds.push(r.videos[0].seconds);
                         cache.url.push(r.videos[0].url);
                         cache.name.push(str);
-                        cacheToText();
-                        console.log("Added to cache");
+                        cacheToText("cache.json", cache);
+                        console.log("<Dr. Music> Added "+str+" to cache");
+                        addPoints(message, 6);// 6 Points for playing a new song!
                         connection.play(ytdl(url, { filter: 'audioonly' }));//Streams that url audio
                     })
                 }
@@ -115,14 +128,8 @@ client.on('message', async message => {
         case 'stop':
             message.channel.bulkDelete(1);
             if (message.member.voice.channel) {
-                inChannel = true;
-            } else {
-                inChannel = false;
-            }
-            if (inChannel == true) {
                 message.member.voice.channel.join()
                 message.guild.voice.connection.disconnect();
-                inChannel = false;
             }
             break;
 
@@ -132,50 +139,118 @@ client.on('message', async message => {
             } else {
                 message.channel.send(message.member.user.username + " Is Not Currently Playing A Game :/")
             }
+
+        case 'points':
+            readPoints(message);
+            break;
+
+        case 'talk':
+            var cmd = concatARGS(args);
+            ttmc(cmd);
+            break;
     }
 })
-function grabCache() {//Populate the cache from json file on program startup
-    fs.readFile('cache.json', 'utf8', function (err, data) {
+function grabCache(str, obj) {//Populate the cache from json file on program startup
+    fs.readFile(str, 'utf8', function (err, data) {
         if (err) {
             return console.log(err);
         }
-        if (cache == undefined) {
-            console.log("cache undefined");
+        if (obj == undefined) {
+            console.log("<Dr. Music> cache undefined");
         } else {
-            cache = JSON.parse(data);
+            if (obj == cache) {
+                cache = JSON.parse(data);
+            } else if (obj == points) {
+                points = JSON.parse(data);
+            }
         }
-
     })
 }
-function cacheToText() {//Write the current cache to the json file
-    var jsonData = JSON.stringify(cache);
-    fs.writeFile("cache.json", jsonData, function (err) {
+function cacheToText(str, obj) {//Write the current cache to the json file
+    var jsonData = JSON.stringify(obj);
+    fs.writeFile(str, jsonData, function (err) {
         if (err) {
             console.log(err);
         }
     });
 }
-
-function assnRole(message){
+function concatARGS(args) {
+    var str = '';
+    for (var i = 1; i < args.length; i++) {
+        str += args[i] + " ";
+    }
+    return str;
+}
+function assnRole(message) {
     if (message.member.presence.activities.length > 0) {
-        //console.log(message.member.presence.activities.length);
-        console.log(message.member.presence.activities[0].name);
         var str = message.member.presence.activities[0].name;
         str = str.trim();
-        //console.log(str.substring(0,9));
-        if(str.substring(0,9)=='Minecraft'){
-            console.log("MC");
+        if (str.substring(0, 9) == 'Minecraft') {// I do this so it will count regardless of what verion is being played
             str = 'Minecraft';
             bot.commands.get('createRole').execute(message, str);//Go and create the role
             bot.commands.get('giveRole').execute(message, 'Minecraft');
-        }else{
+        } else {
             bot.commands.get('createRole').execute(message, str);//Go and create the role
             bot.commands.get('giveRole').execute(message, str);
         }
-        //message.channel.send(message.member.user.username + " Is Playing: " + message.member.presence.activities[0].name)
     } else {
-        //console.log("Null");
-        //message.channel.send(message.member.user.username + " Is Not Currently Playing A Game :/")
+        //Do Nothing
     }
+}
+function addPoints(message, num) {
+    /*
+    -.25 Points For Typing a message in chat
+    -5 Points For Playing an existing song
+    -6 Points For Playing a new song
+    */
+    var name = bot.commands.get('convert').execute(message);
+    var exists = false;
+    var arrindex = 0;
+    for (var i = 0; i < points.name.length; i++) {
+        if (name === points.name[i]) {
+            exists = true
+            arrindex = i;
+        }
+    }
+    if (exists == false) {
+        points.name.push(name);
+        points.num.push(0);
+    } else {
+        points.num[arrindex] += num;
+    }
+    cacheToText('points.json', points);
+}
+function readPoints(message) {
+    var name = message.member.user.username;
+    var arrindex = 0;
+    for (var i = 0; i < points.name.length; i++) {
+        if (name === points.name[i]) {
+            arrindex = i;
+        }
+    }
+    message.reply(name + ": " + "You have " + points.num[arrindex] + " Points!");
+}
+function ttmc(cmd) {
+    if (cmd == "" || cmd == undefined || cmd == null) {
+
+    } else {
+        const MCclient = new util.RCON('192.168.1.163'/*creds.IPADDR*/, { port: 25575, enableSRV: true, timeout: 5000, password: 'test' }); // These are the default options
+
+        MCclient.on('output', (message) => console.log(message));
+
+        MCclient.connect()
+            .then(async () => {
+                await MCclient.run(cmd); // List all players online
+                setTimeout(connclose,1000*1,MCclient);
+                //MCclient.close();
+            })
+            .catch((error) => {
+                throw error;
+            });
+            //MCclient.close();
+    }
+}
+function connclose(MCclient){
+    MCclient.close();
 }
 

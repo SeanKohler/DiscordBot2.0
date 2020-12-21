@@ -8,3 +8,8 @@
 -12/16/2020 Added Automatic Role Creation and Assignment 
 --These are functions the user cannot access but are automatically applied 
 --Version 1.0.2
+
+-12/21/2020 Beginning of the 'Points' System
+--Added Basic !points command
+--Simplified Some Bad Code
+--Version 1.0.3
