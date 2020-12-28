@@ -1,5 +1,6 @@
 //CHANGE LOG
 
+
 -12/12/2020 Discord Bot 2.0 Was Created
 --Basic functionality carried over (!play, !stop)
 --New functionality (!server, !game)
@@ -18,6 +19,6 @@
 --Added Basic !talk command
 --Version 1.0.4
 
--12/27/2020 Added more functionality for music playing
+-12/27/2020 Added more functionality for music playing 
 --Added Basic !skip & !stop commands
 --Version 1.0.5

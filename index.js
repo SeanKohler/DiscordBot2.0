@@ -251,7 +251,7 @@ function assnRole(message) {
     }
 }
 function addPoints(message, num) {
-    /*
+    /* 
     -.25 Points For Typing a message in chat
     -5 Points For Playing an existing song
     -6 Points For Playing a new song
