@@ -1,8 +1,8 @@
 /*
 --Dr Music Discord Bot
---Version 1.0.3
+--Version 1.0.5
 --Created By Sean Kohler
---Date Last Modified 12/21/2020
+--Date Last Modified 12/27/2020
 */
 require("dotenv").config();
 const Discord = require('discord.js');
@@ -26,6 +26,11 @@ var cache = {
     name: [],
     url: [],
     seconds: []
+}
+var queue = {
+    song: [],
+    user: [],
+    message: []
 }
 var points = {
     name: [],
@@ -83,11 +88,13 @@ client.on('message', async message => {
             break;
 
         case 'play':
+            message.channel.bulkDelete(1);
             if (!message.guild) return;
             if (!args[1]) {
                 message.reply('You Need to Specify the name you want to play!');
                 return;
             }
+            
             var str = concatARGS(args);
             // Only try to join the sender's voice channel if they are in one themselves
             if (message.member.voice.channel) {
@@ -116,7 +123,25 @@ client.on('message', async message => {
                         cacheToText("cache.json", cache);
                         console.log("<Dr. Music> Added "+str+" to cache");
                         addPoints(message, 6);// 6 Points for playing a new song!
-                        connection.play(ytdl(url, { filter: 'audioonly' }));//Streams that url audio
+                        connection.play(ytdl(url, { filter: 'audioonly' })).on("finish", () => {
+                            /*if(queue.song.length>0){
+                                message.channel.send('!play '+queue.song[0]+ '&%^/'+queue.message[0].member.nickname);
+                            }
+                            */
+                           if(queue.song.length>0){
+                               var txt = queue.song[0];
+                               var usr = queue.user[0];
+                               var msg = queue.message[0];
+                               removeQueueElement(0);
+                               //queue.song.shift();
+                               //queue.message.shift();
+                               //queue.user.shift();
+                               message.channel.send('!play '+txt);
+                               addPoints(msg, 7);
+                           }
+                            //logs.shift();
+                           // play(message, logs[0]);
+                        });;//Streams that url audio
                     })
                 }
             } else {
@@ -131,6 +156,34 @@ client.on('message', async message => {
                 message.member.voice.channel.join()
                 message.guild.voice.connection.disconnect();
             }
+            break;
+
+        case 'queue':
+            for(var i=0; i<args.length; i++){
+                var cElement = args[i];
+                if(args[i]=='queue'){
+                    console.log('Start of Queue');
+                }else{
+                    queue.song.push(cElement);
+                    queue.user.push(message.member.nickname);
+                    queue.message.push(message);
+                    //----------------
+                    console.log('## '+cElement+" By: "+message.member.nickname);
+                    //----------------
+                }
+            }
+            break;
+        
+        case 'skip':
+            if(queue.song.length>0){
+                message.channel.send('!play '+queue.song[0]);
+                addPoints(queue.message[0], 7);
+                removeQueueElement(0);
+            }else{
+                message.channel.send('Queue is empty :(');
+                message.channel.send('!stop');
+            }
+
             break;
 
         case 'game':
@@ -220,6 +273,11 @@ function addPoints(message, num) {
     }
     cacheToText('points.json', points);
 }
+function removeQueueElement(index){
+    queue.message.splice(index,1);
+    queue.song.splice(index,1);
+    queue.user.splice(index,1);
+}
 function readPoints(message) {
     var name = message.member.user.username;
     var arrindex = 0;
@@ -235,7 +293,7 @@ function ttmc(cmd) {
 
     } else {
         const MCclient = new util.RCON('192.168.1.163'/*creds.IPADDR*/, { port: 25575, enableSRV: true, timeout: 5000, password: 'test' }); // These are the default options
-
+                //This IP Addr is okay because it is a local IP addr of my Raspberry PI
         MCclient.on('output', (message) => console.log(message));
 
         MCclient.connect()

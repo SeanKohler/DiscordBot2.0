@@ -13,3 +13,11 @@
 --Added Basic !points command
 --Simplified Some Bad Code
 --Version 1.0.3
+
+-12/22/2020 Discord can now communicate to MC server
+--Added Basic !talk command
+--Version 1.0.4
+
+-12/27/2020 Added more functionality for music playing
+--Added Basic !skip & !stop commands
+--Version 1.0.5
