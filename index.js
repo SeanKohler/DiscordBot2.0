@@ -1,8 +1,8 @@
 /*
 --Dr Music Discord Bot
---Version 1.0.5
+--Version 1.0.6
 --Created By Sean Kohler
---Date Last Modified 12/27/2020
+--Date Last Modified 12/29/2020
 */
 require("dotenv").config();
 const Discord = require('discord.js');
@@ -19,7 +19,7 @@ const commandFiles = fs.readdirSync('./commands/').filter(file => file.endsWith(
 const PREFIX = '!';
 let colorcounter = 0;
 let url = "";
-let alreadycalled = false;
+let alreadycalled = 0;
 let inChannel = false;
 let cacheIndex = 0;
 var cache = {
@@ -83,7 +83,7 @@ client.on('message', async message => {
             if (colorcounter == colors.length) {
                 colorcounter = 0;
             } else {
-                colorcounter += 1;
+                colorcounter += 1;//This is here to increment the color so it is different each time
             }
             break;
 
@@ -101,17 +101,23 @@ client.on('message', async message => {
                 const connection = await message.member.voice.channel.join();
                 inChannel = true;
                 for (var i = 0; i < cache.name.length; i++) {//Loop through the names of songs in the cache
-                    cache.name[i] = cache.name[i].trim();
-                    if (str == cache.name[i].toString()) {//If the input string = any cached name, It already exists!
-                        alreadycalled = true;
+                    var ci = cache.name[i].toString().trim();
+                    str = str.toString().trim();
+                    var n = str.localeCompare(ci);
+                    if (n==0) {//If the input string = any cached name, It already exists!
+                        alreadycalled = 1;
                         cacheIndex = i;
                     }
                 }
-                if (alreadycalled == true) {
+                console.log('HERE1');
+                if (alreadycalled== true) {
+                    console.log('HERE2');
                     alreadycalled = false;
                     let calledurl = cache.url[cacheIndex];
                     addPoints(message, 5);// 5 Points for playing a song that has been played before
-                    connection.play(ytdl(calledurl, { filter: 'audioonly' }));
+                    connection.play(ytdl(calledurl, { filter: 'audioonly' })).on("finish", () => {
+                       playNext(message);
+                    });;//Streams that url audio;
                 } else {
                     yts(str, function (err, r) {
                         if (err) throw err;
@@ -124,23 +130,7 @@ client.on('message', async message => {
                         console.log("<Dr. Music> Added "+str+" to cache");
                         addPoints(message, 6);// 6 Points for playing a new song!
                         connection.play(ytdl(url, { filter: 'audioonly' })).on("finish", () => {
-                            /*if(queue.song.length>0){
-                                message.channel.send('!play '+queue.song[0]+ '&%^/'+queue.message[0].member.nickname);
-                            }
-                            */
-                           if(queue.song.length>0){
-                               var txt = queue.song[0];
-                               var usr = queue.user[0];
-                               var msg = queue.message[0];
-                               removeQueueElement(0);
-                               //queue.song.shift();
-                               //queue.message.shift();
-                               //queue.user.shift();
-                               message.channel.send('!play '+txt);
-                               addPoints(msg, 7);
-                           }
-                            //logs.shift();
-                           // play(message, logs[0]);
+                           playNext(message);
                         });;//Streams that url audio
                     })
                 }
@@ -175,15 +165,7 @@ client.on('message', async message => {
             break;
         
         case 'skip':
-            if(queue.song.length>0){
-                message.channel.send('!play '+queue.song[0]);
-                addPoints(queue.message[0], 7);
-                removeQueueElement(0);
-            }else{
-                message.channel.send('Queue is empty :(');
-                message.channel.send('!stop');
-            }
-
+            playNext(message);
             break;
 
         case 'game':
@@ -272,6 +254,22 @@ function addPoints(message, num) {
         points.num[arrindex] += num;
     }
     cacheToText('points.json', points);
+}
+function playNext(message){
+    if(queue.song.length>0){
+        var txt = queue.song[0];
+        var usr = queue.user[0];
+        var msg = queue.message[0];
+        removeQueueElement(0);
+        //queue.song.shift();
+        //queue.message.shift();
+        //queue.user.shift();
+        message.channel.send('!play '+txt);
+        addPoints(msg, 7);
+    }else{
+        message.channel.send('Queue is empty :(');
+        message.channel.send('!stop');
+    }
 }
 function removeQueueElement(index){
     queue.message.splice(index,1);

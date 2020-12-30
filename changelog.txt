@@ -22,3 +22,7 @@
 -12/27/2020 Added more functionality for music playing 
 --Added Basic !skip & !stop commands
 --Version 1.0.5
+
+-12/29/2020 Fixed terrible Code
+--Cleaned up !skip & !play when the song exists in the cache
+--Version 1.0.6
