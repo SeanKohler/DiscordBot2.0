@@ -26,3 +26,8 @@
 -12/29/2020 Fixed terrible Code
 --Cleaned up !skip & !play when the song exists in the cache
 --Version 1.0.6
+
+-1/13/2021 Significant Improvement in efficency
+--Replaced old method to search the cache with a binary search 
+--Changed the input method to insertion sort (I chose this because it is the most efficent way for a mostly sorted list)
+--Version 1.1.0

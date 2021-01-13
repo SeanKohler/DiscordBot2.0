@@ -1,8 +1,8 @@
 /*
 --Dr Music Discord Bot
---Version 1.0.6
+--Version 1.1.0
 --Created By Sean Kohler
---Date Last Modified 12/29/2020
+--Date Last Modified 1/13/2021
 */
 require("dotenv").config();
 const Discord = require('discord.js');
@@ -100,6 +100,10 @@ client.on('message', async message => {
             if (message.member.voice.channel) {
                 const connection = await message.member.voice.channel.join();
                 inChannel = true;
+                str = str.toString().trim();
+                alreadycalled=  binarySearch(str);
+                console.log(alreadycalled);
+                /*
                 for (var i = 0; i < cache.name.length; i++) {//Loop through the names of songs in the cache
                     var ci = cache.name[i].toString().trim();
                     str = str.toString().trim();
@@ -109,9 +113,8 @@ client.on('message', async message => {
                         cacheIndex = i;
                     }
                 }
-                console.log('HERE1');
+                */
                 if (alreadycalled== true) {
-                    console.log('HERE2');
                     alreadycalled = false;
                     let calledurl = cache.url[cacheIndex];
                     addPoints(message, 5);// 5 Points for playing a song that has been played before
@@ -126,6 +129,8 @@ client.on('message', async message => {
                         cache.seconds.push(r.videos[0].seconds);
                         cache.url.push(r.videos[0].url);
                         cache.name.push(str);
+                        //sort();
+                        insertionSort();
                         cacheToText("cache.json", cache);
                         console.log("<Dr. Music> Added "+str+" to cache");
                         addPoints(message, 6);// 6 Points for playing a new song!
@@ -151,6 +156,7 @@ client.on('message', async message => {
         case 'queue':
             for(var i=0; i<args.length; i++){
                 var cElement = args[i];
+                cElement =cElement.replace(/-/g,' ');
                 if(args[i]=='queue'){
                     console.log('Start of Queue');
                 }else{
@@ -165,6 +171,7 @@ client.on('message', async message => {
             break;
         
         case 'skip':
+            message.channel.bulkDelete(1);
             playNext(message);
             break;
 
@@ -176,15 +183,112 @@ client.on('message', async message => {
             }
 
         case 'points':
-            readPoints(message);
+            readPoints(message,args,0);
+            break;
+
+        case 'redeem':
+            readPoints(message,args,1);
             break;
 
         case 'talk':
             var cmd = concatARGS(args);
             ttmc(cmd);
             break;
+
+        case 'poggies':
+            message.channel.send("https://tenor.com/view/pepe-the-frog-dance-happy-meme-pixel-gif-17428498");
+            break;
     }
 })
+function sort(){
+    for(var i=0; i<cache.name.length; i++){
+        for(var j=0; j<cache.name.length; j++){
+            if(cache.name[i].localeCompare(cache.name[j]) <0){
+                //Swap names
+                var temp = cache.name[i];
+                cache.name[i] = cache.name[j];
+                cache.name[j] = temp;
+                //Swap url to match names
+                temp =cache.url[i];
+                cache.url[i] = cache.url[j];
+                cache.url[j] = temp; 
+                //Swap seconds to match url
+                temp =cache.seconds[i];
+                cache.seconds[i] = cache.seconds[j];
+                cache.seconds[j] = temp; 
+            }
+        }
+    }
+    /*
+    for(var x=0; x<cache.name.length; x++){
+        console.log(cache.name[x]);
+    }
+    */
+}
+function insertionSort(){
+    var len = cache.name.length;
+    for(var i=0; i<len; i++){
+        var keyval = cache.name[i];
+        var keyurl = cache.url[i];
+        var j = i-1;
+
+        while(j>=0 && cache.name[j].localeCompare(keyval)>0){
+            //var temp = cache.name[j+1];
+            cache.name[j+1] = cache.name[j];
+            cache.url[j+1] = cache.url[j];
+            //cache.name[j] = temp;
+
+            j-=1;
+        }
+        cache.name[j+1] = keyval;
+        cache.url[j+1] = keyurl;
+    }
+
+    for(var x=0; x<cache.name.length; x++){
+        console.log(cache.name[x]);
+    }
+}
+function binarySearch(str) {
+    var exists = false;
+    var found = false;
+    var high = cache.name.length;
+    var min = 0;
+    var mid = (min + high) / 2;
+    mid =Math.floor(mid);
+    console.log(min +" "+mid+" "+high);
+    console.log(cache.name[mid]);
+    console.log(str);
+    while (found == false) {
+        if (cache.name[mid].localeCompare(str) < 0) {
+            min = mid;
+            mid = (min + high) / 2;
+            mid =Math.floor(mid);
+        } else if (cache.name[mid].localeCompare(str) > 0) {
+            high = mid;
+            mid = (min + high) / 2;
+            mid =Math.floor(mid);
+        }
+        console.log(min +" "+mid+" "+high);
+        console.log(cache.name[mid]);
+        console.log(str);
+        if (cache.name[mid].localeCompare(str) == 0) {
+            found = true;
+            exists = true;
+            cacheIndex = mid;
+        } else if (mid == high || mid == min) {
+            console.log("Reached end");
+            found = true;
+            exists = false;
+
+        }
+    }
+
+    if(exists == false){
+        console.log("Didnt exist");
+    }
+
+    return exists;
+}
 function grabCache(str, obj) {//Populate the cache from json file on program startup
     fs.readFile(str, 'utf8', function (err, data) {
         if (err) {
@@ -223,14 +327,17 @@ function assnRole(message) {
         if (str.substring(0, 9) == 'Minecraft') {// I do this so it will count regardless of what verion is being played
             str = 'Minecraft';
             bot.commands.get('createRole').execute(message, str);//Go and create the role
-            bot.commands.get('giveRole').execute(message, 'Minecraft');
+            setTimeout(waitToAdd,1000*5,message,str);
         } else {
             bot.commands.get('createRole').execute(message, str);//Go and create the role
-            bot.commands.get('giveRole').execute(message, str);
+            setTimeout(waitToAdd,1000*5,message,str);
         }
     } else {
         //Do Nothing
     }
+}
+function waitToAdd(message,str){
+    bot.commands.get('giveRole').execute(message, str);
 }
 function addPoints(message, num) {
     /* 
@@ -267,7 +374,7 @@ function playNext(message){
         message.channel.send('!play '+txt);
         addPoints(msg, 7);
     }else{
-        message.channel.send('Queue is empty :(');
+        //message.channel.send('Queue is empty :(');
         message.channel.send('!stop');
     }
 }
@@ -276,7 +383,7 @@ function removeQueueElement(index){
     queue.song.splice(index,1);
     queue.user.splice(index,1);
 }
-function readPoints(message) {
+function readPoints(message,args,type) {
     var name = message.member.user.username;
     var arrindex = 0;
     for (var i = 0; i < points.name.length; i++) {
@@ -284,7 +391,26 @@ function readPoints(message) {
             arrindex = i;
         }
     }
-    message.reply(name + ": " + "You have " + points.num[arrindex] + " Points!");
+    if(type ==0){
+      message.reply(name + ": " + "You have " + points.num[arrindex] + " Points!");  
+    }else if(type==1){
+        var pnts = points.num[arrindex];
+        message.reply('You can redeem rewards up to: '+pnts);
+        if(!args[1]){
+            message.reply('You must specify what reward you want to redeem');
+            message.reply('Current Rewards: (role -> 1500), (xp -> 1000)');
+        }else if(args[1]=='role'&&pnts >=1500){
+            addPoints(message, -1500);
+            bot.commands.get('defineRole').execute(message);
+            bot.commands.get('giveRole').execute(message,'Doctors Assistant');
+            message.reply('Redeemed!');
+        }else if(args[1]=='xp'&&pnts >=1000){
+            addPoints(message, -1000);
+            message.channel.send('!talk xp add '+message.member.nickname+' 30 levels');
+            message.reply('Redemmed!');
+        }
+    }
+    
 }
 function ttmc(cmd) {
     if (cmd == "" || cmd == undefined || cmd == null) {
@@ -296,7 +422,7 @@ function ttmc(cmd) {
 
         MCclient.connect()
             .then(async () => {
-                await MCclient.run(cmd); // List all players online
+                await MCclient.run(cmd); //.run(list)// List all players online
                 setTimeout(connclose,1000*1,MCclient);
                 //MCclient.close();
             })
@@ -309,4 +435,3 @@ function ttmc(cmd) {
 function connclose(MCclient){
     MCclient.close();
 }
-

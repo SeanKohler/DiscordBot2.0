@@ -1,6 +1,7 @@
 node_modules/
 .env
 config.js
+testbt.js
 *.png
 *.json
 commands/convert.js
