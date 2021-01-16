@@ -1,5 +1,5 @@
 //CHANGE LOG
-
+-Bot Created by Sean Kohler
 
 -12/12/2020 Discord Bot 2.0 Was Created
 --Basic functionality carried over (!play, !stop)
@@ -33,5 +33,9 @@
 --Version 1.1.0
 
 -1/14/2021 Queue now allows spaces but uses commas to separate songs
---Switched from separating each word in a song with a '-' and using spaces for separating words to just using a ',' to separate
+--Switched from separating each word in a song with a '-' and using spaces for separating songs to just using a ',' to separate
 --Version 1.1.1
+
+-1/16/2021 Removed anything extra not related to playing music
+--Simplified bot to optomize for public release
+--Version 1.2.0
