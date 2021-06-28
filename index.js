@@ -118,8 +118,6 @@ client.on('message', async message => {
                         alreadycalled = false;
                         let calledurl = cache.url[cacheIndex];
                         q.channel.currentsong[qid] = cache.name[cacheIndex];
-                        //currentsong = cache.name[cacheIndex];
-                        //addPoints(message, 5);// 5 Points for playing a song that has been played before
                         connection.play(ytdl(calledurl, { filter: 'audioonly' })).on("finish", () => {
                             playNext(message);
                             cacheToText('queue.json', q);
@@ -132,7 +130,6 @@ client.on('message', async message => {
                             cache.seconds.push(r.videos[0].seconds);
                             cache.url.push(r.videos[0].url);
                             cache.name.push(str);
-                            //currentsong = str;
                             q.channel.currentsong[qid] = str;
                             insertionSort();
                             cacheToText("cache.json", cache);
@@ -224,25 +221,25 @@ client.on('message', async message => {
             break;
 
         case 'help':
-            if(!args[1]){
-              message.channel.send('``` !play ______   (Single song name) \n !stop (Will stop playing songs) \n !queue ______, _______, ______ (You must use commas "," to separate songs) \n !skip (Will move to next song in the queue) \n !enablerole _____ (true or false) \n !bot (Add Dr. Music to your Channels!) \n !help ________ (Command name (!help !enablerole)) For more descriptive instruction```');
-            }else if(args[1]=='!play'){
+            if (!args[1]) {
+                message.channel.send('``` !play ______   (Single song name) \n !stop (Will stop playing songs) \n !queue ______, _______, ______ (You must use commas "," to separate songs) \n !skip (Will move to next song in the queue) \n !enablerole _____ (true or false) \n !bot (Add Dr. Music to your Channels!) \n !help ________ (Command name (!help !enablerole)) For more descriptive instruction```');
+            } else if (args[1] == '!play') {
                 message.channel.send('```Ex). !play yee \n This will search youtube for the first result of "yee". The audio of the video will then be played into the voice channel```');
-            }else if(args[1]=='!stop'){
+            } else if (args[1] == '!stop') {
                 message.channel.send('``` This will stop playing audio and make Dr. Music leave the voice channel```');
-            }else if(args[1]=='!queue'){
+            } else if (args[1] == '!queue') {
                 message.channel.send('```Ex). !queue yee, nope.avi, wii shop channel \n This will put 3 songs into the queue. Because I allow song names to have spaces, we must separate the songs with a comma ",". ```');
-            }else if(args[1]=='!skip'){
+            } else if (args[1] == '!skip') {
                 message.channel.send('```If a song is currently playing it will stop playing that song and play the next song in the queue if there is one```');
-            }else if(args[1]=='!enablerole'){
+            } else if (args[1] == '!enablerole') {
                 message.channel.send('```If this command is followed by "true" Dr. Music will take the status of users and create roles out of them and automatically assign them. Type "false" to disable this. (Is false by default)```');
-            }else if(args[1]=='!bot'){
+            } else if (args[1] == '!bot') {
                 message.channel.send('```Provides a link to add Dr. Music to your server. For help contact me```');
-            }else if(args[1]=='!help'){
+            } else if (args[1] == '!help') {
                 message.channel.send('```Help for help. Nice!```');
             }
             break;
-        
+
         case 'commands':
             message.channel.send('!help');
             break;
@@ -283,11 +280,9 @@ function insertionSort() {
         var j = i - 1;
 
         while (j >= 0 && cache.name[j].localeCompare(keyval) > 0) {
-            //var temp = cache.name[j+1];
             cache.name[j + 1] = cache.name[j];
             cache.url[j + 1] = cache.url[j];
             cache.seconds[j + 1] = cache.seconds[j];
-            //cache.name[j] = temp;
 
             j -= 1;
         }
@@ -319,8 +314,6 @@ function binarySearch(str) {
             mid = Math.floor(mid);
         }
         console.log(min + " " + mid + " " + high);
-        //console.log(cache.name[mid]);
-        //console.log(str);
         if (cache.name[mid].localeCompare(str) == 0) {
             found = true;
             exists = true;
@@ -352,9 +345,6 @@ function grabCache(str, obj) {//Populate the cache from json file on program sta
             } else if (obj == cast) {
                 cast = JSON.parse(data);
             }
-            //else if (obj == points) {
-            //  points = JSON.parse(data);
-            //}
         }
     })
 }
@@ -373,13 +363,12 @@ function concatARGS(args) {
     }
     return str;
 }
-function checkQid(id, message, calledfrom){
+function checkQid(id, message, calledfrom) {
     console.log(calledfrom);
-    //console.log(id);
     var exists = false;
     var qid;
-    for(var i =0; i<q.channel.id.length; i++){
-        if(id == q.channel.id[i]){
+    for (var i = 0; i < q.channel.id.length; i++) {
+        if (id == q.channel.id[i]) {
             exists = true;
             qid = i;
         }
@@ -398,108 +387,18 @@ function checkQid(id, message, calledfrom){
     }
     return qid;
 }
-/*
-function checkQid(id, message) {
-    var exists = false;
-    var found = false;
-    var qid;
-    var high = q.channel.id.length;
-    var min = 0;
-    var mid = (min + high) / 2;
-    mid = Math.floor(mid);
-    if (high > 0) {
-        while (found == false) {
-            //console.log(min + " " + mid + " " + high);
-            if (q.channel.id[mid].localeCompare(id) < 0) {
-                min = mid;
-                mid = (min + high) / 2;
-                mid = Math.floor(mid);
-            } else if (q.channel.id[mid].localeCompare(id) > 0) {
-                high = mid;
-                mid = (min + high) / 2;
-                mid = Math.floor(mid);
-            }
-            //console.log(min + " " + mid + " " + high);
-            //console.log(cache.name[mid]);
-            //console.log(str);
-            if (q.channel.id[mid].localeCompare(id) == 0) {
-                found = true;
-                exists = true;
-                qid = mid;
-                //console.log('QID: ' + qid);
-            } else if (mid == high || mid == min) {
-                //console.log("Reached end");
-                found = true;
-                exists = false;
 
-            }
-        }
-    }
-
-
-
-
-    /*
-        for (var i = 0; i < q.channel.id.length; i++) {//for loop is ok because it is usually never going to be more than 4-5 inputs by the user
-            if (id == q.channel.id[i]) {
-                exists = true;
-                qid = i;
-            }
-        }
-        
-    if (exists == false) {
-        q.channel.id.push(id);
-        qid = q.channel.id[q.channel.id.length - 1];
-        q.channel.channelqueue.push([]);
-        q.channel.currentsong.push('Not yet played song');
-        q.channel.enablerole.push(false);
-        message.channel.send('Thankyou for using Dr. Music! Use the !bot command to add it to your own servers');
-        test();
-    }
-    if (qid == undefined) {//safety net code doesnt always work as we would like it to
-        checkQid(id, message);
-    }
-    return qid;//this value is the index of the desired array for the list of arrays
-}
-function test() {
-    console.log('LENGTH: '+q.channel.id.length);
-    for (var i = 0; i < q.channel.id.length; i++) {
-        for (var j = 0; j < q.channel.id.length; j++) {
-            if (q.channel.id[i] < q.channel.id[j]) {
-                console.log(q.channel.id[i] + " Is Less than " + q.channel.id[j]);
-            }
-        }
-    }
-}
-*/
 function makeChannel(message) {
     var str = cast.text;
     for (var i = 0; i < q.channel.id.length; i++) {
         var currentchannel = q.channel.id[i];
         client.channels.cache.get(currentchannel).send(str);
     }
-    /*
-    var guild = message.member.guild;
-    var has = false;
-    console.log(guild.channels.cache);
-    for(var i=0; i<guild.channels.cache.size; i++){
-        console.log(guild.channels.cache.TextChannel);
-    }
-    //new Discord.GuildChannel(message.guild,'Dr. Music Alert!');
-    message.guild.channels.create('Dr. Music Alert!', { reason: 'Needed an way to communicate an announcement' })
-        .then(console.log)
-        .catch(console.error);
-        const channel = guild.channels.cache.find(channel => channel.name === 'dr-music-alert');
-        //const channel = message.guild.channels.find(ch => ch.name === 'Dr. Music Alert!');
-        channel.send("HI");
-    //bot.channels.find("name",'Dr. Music Alert!').send("Welcome!")
-    console.log("Should have created?");
-    //server.createChannel('Dr. Music Alert!', "text");
-    */
+
 }
 function assnRole(message) {
     var id = message.channel.id;
-    var qid = checkQid(id, message,'CalledFrom:assnRole');
+    var qid = checkQid(id, message, 'CalledFrom:assnRole');
     if (q.channel.enablerole[qid] == true) {
         if (message.member.presence.activities.length > 0) {
             var str = message.member.presence.activities[0].name;
@@ -530,7 +429,7 @@ function playNext(message) {
             removeQueueElement(qid);
             txt = q.channel.channelqueue[qid][0];
         }
-        console.log(txt+': This can be undefined as it may not have anything to playnext');
+        console.log(txt + ': This can be undefined as it may not have anything to playnext');
         removeQueueElement(qid);
         if (txt == undefined || txt == 'undefined') {
             console.log('Next queue element is: ' + undefined);
@@ -541,20 +440,7 @@ function playNext(message) {
             q.channel.currentsong[qid] = txt;
         }
 
-    }
-    /*
-    if(q.channel.song[qid].song.length > 0){
-        var txt = q.channel.song[qid].song[0];
-        removeQueueElement(qid);
-        message.channel.send('!play ' + txt);
-    }
-    /*
-    if (queue.song.length > 0) {
-        var txt = queue.song[0];
-        removeQueueElement(0);
-        message.channel.send('!play ' + txt);
-        
-    }*/ else {
+    } else {
         //message.channel.send('Queue is empty :(');
         message.channel.send('!stop');
     }

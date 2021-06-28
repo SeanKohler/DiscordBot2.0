@@ -53,3 +53,7 @@
 --Reverted from binary search in one are to a for loop to maximize efficency for a non sorted list
 --Code is significantly shorter but functionally preforms the same
 --Version 1.3.2
+
+-6/28/2021 Removed tons of commented out code that is no longer needed for reference.
+--Reduced size of backend code
+--Version 1.3.3
