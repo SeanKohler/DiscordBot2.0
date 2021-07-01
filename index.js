@@ -1,8 +1,8 @@
 /*
 --Dr Music Discord Bot
---Version 1.3.1
+--Version 1.3.4 
 --Created By Sean Kohler
---Date Last Modified 4/16/2021
+--Date Last Modified 7/1/2021
 */
 
 /*Program Requirements*/
@@ -16,6 +16,7 @@ const fs = require('fs');
 const { send } = require("process");
 const bot = new Discord.Client();
 bot.commands = new Discord.Collection();
+const { MessageAttachment } = require("discord.js");
 const commandFiles = fs.readdirSync('./commands/').filter(file => file.endsWith('.js'));
 
 /*Program Variables*/
@@ -154,7 +155,11 @@ client.on('message', async message => {
                 message.guild.voice.connection.disconnect();
             }
             var qid = checkQid(id, message, 'CalledFrom:stop');
-            q.channel.currentsong[qid] = 'No current Song';
+            if (qid == '__BotMSG__') {
+                console.log('do nothing __BotMSG__');
+            } else {
+                q.channel.currentsong[qid] = 'No current Song';
+            }
             break;
 
         case 'queue':
@@ -364,28 +369,33 @@ function concatARGS(args) {
     return str;
 }
 function checkQid(id, message, calledfrom) {
-    console.log(calledfrom);
-    var exists = false;
-    var qid;
-    for (var i = 0; i < q.channel.id.length; i++) {
-        if (id == q.channel.id[i]) {
-            exists = true;
-            qid = i;
+    if (message.member.id == '786879633475895317') {
+        console.log("BotMessage");
+        return '__BotMSG__';
+    } else {
+        console.log(calledfrom);
+        var exists = false;
+        var qid;
+        for (var i = 0; i < q.channel.id.length; i++) {
+            if (id == q.channel.id[i]) {
+                exists = true;
+                qid = i;
+            }
         }
+        if (exists == false) {
+            q.channel.id.push(id);
+            qid = q.channel.id[q.channel.id.length - 1];
+            q.channel.channelqueue.push([]);
+            q.channel.currentsong.push('Not yet played song');
+            q.channel.enablerole.push(false);
+            message.channel.send('Thankyou for using Dr. Music! Use the !bot command to add it to your own servers');
+        }
+        if (qid == undefined) {//safety net code doesnt always work as we would like it to
+            console.log('Undefined');
+            checkQid(id, message, 'CalledFrom:self');
+        }
+        return qid;
     }
-    if (exists == false) {
-        q.channel.id.push(id);
-        qid = q.channel.id[q.channel.id.length - 1];
-        q.channel.channelqueue.push([]);
-        q.channel.currentsong.push('Not yet played song');
-        q.channel.enablerole.push(false);
-        message.channel.send('Thankyou for using Dr. Music! Use the !bot command to add it to your own servers');
-    }
-    if (qid == undefined) {//safety net code doesnt always work as we would like it to
-        console.log('Undefined');
-        checkQid(id, message, 'CalledFrom:self');
-    }
-    return qid;
 }
 
 function makeChannel(message) {
@@ -399,23 +409,26 @@ function makeChannel(message) {
 function assnRole(message) {
     var id = message.channel.id;
     var qid = checkQid(id, message, 'CalledFrom:assnRole');
-    if (q.channel.enablerole[qid] == true) {
-        if (message.member.presence.activities.length > 0) {
-            var str = message.member.presence.activities[0].name;
-            str = str.trim();
-            if (str.substring(0, 9) == 'Minecraft') {// I do this so it will count regardless of what verion is being played
-                str = 'Minecraft';
-                bot.commands.get('createRole').execute(message, str);//Go and create the role
-                setTimeout(waitToAdd, 1000 * 5, message, str);
+    if (qid == '__BotMSG__') {
+        console.log('do nothing __BotMSG__');
+    } else {
+        if (q.channel.enablerole[qid] == true) {
+            if (message.member.presence.activities.length > 0) {
+                var str = message.member.presence.activities[0].name;
+                str = str.trim();
+                if (str.substring(0, 9) == 'Minecraft') {// I do this so it will count regardless of what verion is being played
+                    str = 'Minecraft';
+                    bot.commands.get('createRole').execute(message, str);//Go and create the role
+                    setTimeout(waitToAdd, 1000 * 5, message, str);
+                } else {
+                    bot.commands.get('createRole').execute(message, str);//Go and create the role
+                    setTimeout(waitToAdd, 1000 * 5, message, str);
+                }
             } else {
-                bot.commands.get('createRole').execute(message, str);//Go and create the role
-                setTimeout(waitToAdd, 1000 * 5, message, str);
+                //Do Nothing
             }
-        } else {
-            //Do Nothing
         }
     }
-
 }
 function waitToAdd(message, str) {
     bot.commands.get('giveRole').execute(message, str);
@@ -423,26 +436,30 @@ function waitToAdd(message, str) {
 function playNext(message) {
     var id = message.channel.id;
     var qid = checkQid(id, message, 'CalledFrom:playNext');
-    if (q.channel.channelqueue[qid].length > 0) {
-        var txt = q.channel.channelqueue[qid][0];
-        if (txt == '') {
-            removeQueueElement(qid);
-            txt = q.channel.channelqueue[qid][0];
-        }
-        console.log(txt + ': This can be undefined as it may not have anything to playnext');
-        removeQueueElement(qid);
-        if (txt == undefined || txt == 'undefined') {
-            console.log('Next queue element is: ' + undefined);
-            message.channel.send('!stop');
-            q.channel.currentsong[qid] = 'Not currently playing a song';
-        } else {
-            message.channel.send('!play ' + txt);
-            q.channel.currentsong[qid] = txt;
-        }
-
+    if (qid == '__BotMSG__') {
+        console.log('do nothing __BotMSG__');
     } else {
-        //message.channel.send('Queue is empty :(');
-        message.channel.send('!stop');
+        if (q.channel.channelqueue[qid].length > 0) {
+            var txt = q.channel.channelqueue[qid][0];
+            if (txt == '') {
+                removeQueueElement(qid);
+                txt = q.channel.channelqueue[qid][0];
+            }
+            console.log(txt + ': This can be undefined as it may not have anything to playnext');
+            removeQueueElement(qid);
+            if (txt == undefined || txt == 'undefined') {
+                console.log('Next queue element is: ' + undefined);
+                message.channel.send('!stop');
+                q.channel.currentsong[qid] = 'Not currently playing a song';
+            } else {
+                message.channel.send('!play ' + txt);
+                q.channel.currentsong[qid] = txt;
+            }
+
+        } else {
+            //message.channel.send('Queue is empty :(');
+            message.channel.send('!stop');
+        }
     }
 }
 function removeQueueElement(index) {

@@ -52,8 +52,13 @@
 -6/27/2021 Rewrote checkQid function. We cannot preform binary search on a non sorted list and we cannot sort the list without creating more problems.
 --Reverted from binary search in one are to a for loop to maximize efficency for a non sorted list
 --Code is significantly shorter but functionally preforms the same
+--Also updated ytdl node package
 --Version 1.3.2
 
 -6/28/2021 Removed tons of commented out code that is no longer needed for reference.
 --Reduced size of backend code
 --Version 1.3.3
+
+-7/1/2021 Added lines of code to stop messages sent by the bot from going into the checkQid method
+--Bot messages won't trigger intensive checkQid method
+--Version 1.3.4 
